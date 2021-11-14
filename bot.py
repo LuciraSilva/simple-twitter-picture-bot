@@ -30,10 +30,19 @@ class Bot(object):
     
         self.screen_name = self.credentials.VerifyCredentials().screen_name
     
+    def delete_tweets(self):
+        statuses = self.credentials.GetUserTimeline()
+        
+        if statuses:
+            [self.credentials.DestroyStatus(status.id, count=200) for status in statuses]
+            print('Some tweets was deleted!')
+            return 
+        
+        print("There's no tweets to delete!")
+        
     def check_if_exists_new_mentions(self) -> Union[tuple, bool]:
         
         current_mentions = self.credentials.GetMentions()
-        
         if not current_mentions:
             return False
         
@@ -97,14 +106,13 @@ if __name__ == '__main__':
            
         try:
             
-            
             new_mentions = bot.check_if_exists_new_mentions()
             
             if new_mentions:
                 bot.tweet_an_image_to_addressed_users(new_mentions[0]) 
                 
             print('>> Chillin! <<')
-            sleep(SLEEP_TIME)
+            sleep(30)
         
         except TwitterError as e:
             
