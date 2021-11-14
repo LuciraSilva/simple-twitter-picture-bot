@@ -31,18 +31,29 @@ class Bot(object):
         self.screen_name = self.credentials.VerifyCredentials().screen_name
     
     def delete_tweets(self):
-        statuses = self.credentials.GetUserTimeline()
+        statuses = self.credentials.GetUserTimeline(count=200)
         
         if statuses:
-            [self.credentials.DestroyStatus(status.id, count=200) for status in statuses]
+            [self.credentials.DestroyStatus(status.id) for status in statuses]
             print('Some tweets was deleted!')
+                        
             return 
         
         print("There's no tweets to delete!")
         
+    def filter_only_command_mentions(self, mentions):
+        filtered_mentions = []
+        
+        for current_mention in mentions:
+            if 'send a picture to' in current_mention.text.lower():
+                filtered_mentions.append(current_mention)
+                
+        return filtered_mentions
+    
     def check_if_exists_new_mentions(self) -> Union[tuple, bool]:
         
         current_mentions = self.credentials.GetMentions()
+        
         if not current_mentions:
             return False
         
@@ -59,13 +70,13 @@ class Bot(object):
                 if (current_mentions[index].id == self.last_saved_mention_id):
                     
                     missed_mentions = current_mentions[: index]
-                    
+                        
                     self.last_saved_mention_id = current_mentions[0].id
                     
                     read_or_write_in_db(method='w', content=self.last_saved_mention_id)
                     
                     return (missed_mentions, True)
-                
+
             self.last_saved_mention_id = current_mentions[0].id
                     
             read_or_write_in_db(method='w', content=self.last_saved_mention_id)
@@ -79,6 +90,7 @@ class Bot(object):
             screen_name = mentions[index].text.split('@')[-1][:-1].strip()
             if screen_name != self.screen_name:
                 addressed_users.append(screen_name)
+                
         return addressed_users
     
     def tweet_an_image_to_addressed_users(self, missed_mentions):
@@ -105,14 +117,17 @@ if __name__ == '__main__':
     while True:
            
         try:
-            
+                        
             new_mentions = bot.check_if_exists_new_mentions()
             
             if new_mentions:
-                bot.tweet_an_image_to_addressed_users(new_mentions[0]) 
+                
+                command_mentions = bot.filter_only_command_mentions(new_mentions[0])
+                
+                bot.tweet_an_image_to_addressed_users(command_mentions) 
                 
             print('>> Chillin! <<')
-            sleep(30)
+            sleep(20)
         
         except TwitterError as e:
             
