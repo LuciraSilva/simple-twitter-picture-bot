@@ -1,0 +1,4 @@
+venv/
+images/
+db.txt
+.env
