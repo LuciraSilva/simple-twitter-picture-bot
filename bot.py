@@ -10,7 +10,7 @@ from typing import Union
 load_dotenv()
 
 SLEEP_TIME = 120
-
+TWEET_BY_TWEET_INTERVAL = 10
 def read_or_write_in_db(method: str = 'r', content='') -> str:
         with open(getenv('DB_PATH'), method) as db:
             if method == 'w':
@@ -107,7 +107,7 @@ class Bot(object):
                 self.credentials.PostUpdate(status=default_message, media=img)
                 
             print('Tweet done!')
-            sleep(10)
+            sleep(TWEET_BY_TWEET_INTERVAL)
             
         return 
 
@@ -127,7 +127,7 @@ if __name__ == '__main__':
                 bot.tweet_an_image_to_addressed_users(command_mentions) 
                 
             print('>> Chillin! <<')
-            sleep(20)
+            sleep(SLEEP_TIME)
         
         except TwitterError as e:
             
