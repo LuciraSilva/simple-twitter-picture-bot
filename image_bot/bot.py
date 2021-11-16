@@ -1,23 +1,28 @@
-from time import sleep
-from twitter import Api
-from dotenv import load_dotenv
-from os import getenv
-import random
 import os
-from twitter.error import TwitterError
-import runpy
+import random
+from os import getenv
+from time import sleep
 from typing import Union
+
+from dotenv import load_dotenv
+from twitter import Api
+
 load_dotenv()
 
-SLEEP_TIME = 120
-TWEET_BY_TWEET_INTERVAL = 10
-def read_or_write_in_db(method: str = 'r', content='') -> str:
-        with open(getenv('DB_PATH'), method) as db:
-            if method == 'w':
-                db.write(str(content))
-                return
-            return db.read()
+TWEET_BY_TWEET_INTERVAL = int(os.getenv('TWEET_BY_TWEET_INTERVAL'))
 
+def save_or_read_last_mention_saved(method: str = 'r', content='') -> str:
+    
+    with open(getenv('DB_PATH'), method) as db:
+        
+        if method == 'w':
+            db.write(str(content))
+            return
+        
+        return db.read()
+        
+        
+        
 class Bot(object):
     
     def __init__(self):
@@ -26,7 +31,7 @@ class Bot(object):
                       access_token_key=getenv('ACCESS_TOKEN_KEY'),
                       access_token_secret=getenv('ACCESS_TOKEN_SECRET'))
     
-        self.last_saved_mention_id = '' if not read_or_write_in_db() else int(read_or_write_in_db())
+        self.last_saved_mention_id = '' if not save_or_read_last_mention_saved() else int(save_or_read_last_mention_saved())
     
         self.screen_name = self.credentials.VerifyCredentials().screen_name
     
@@ -61,7 +66,7 @@ class Bot(object):
             
             self.last_saved_mention_id = current_mentions[0].id
             
-            read_or_write_in_db(method='w', content=self.last_saved_mention_id)
+            save_or_read_last_mention_saved(method='w', content=self.last_saved_mention_id)
         
             
         if current_mentions[0].id != self.last_saved_mention_id:
@@ -73,13 +78,13 @@ class Bot(object):
                         
                     self.last_saved_mention_id = current_mentions[0].id
                     
-                    read_or_write_in_db(method='w', content=self.last_saved_mention_id)
+                    save_or_read_last_mention_saved(method='w', content=self.last_saved_mention_id)
                     
                     return (missed_mentions, True)
 
             self.last_saved_mention_id = current_mentions[0].id
                     
-            read_or_write_in_db(method='w', content=self.last_saved_mention_id)
+            save_or_read_last_mention_saved(method='w', content=self.last_saved_mention_id)
                                 
         return False
         
@@ -111,26 +116,6 @@ class Bot(object):
             
         return 
 
-if __name__ == '__main__':
-    bot = Bot()
     
-    while True:
-           
-        try:
-                        
-            new_mentions = bot.check_if_exists_new_mentions()
-            
-            if new_mentions:
-                
-                command_mentions = bot.filter_only_command_mentions(new_mentions[0])
-                
-                bot.tweet_an_image_to_addressed_users(command_mentions) 
-                
-            print('>> Chillin! <<')
-            sleep(SLEEP_TIME)
-        
-        except TwitterError as e:
-            
-            if e[0]['code'] == 88:
-                
-                runpy.run_path(path_name='bot.py')
+
+    
