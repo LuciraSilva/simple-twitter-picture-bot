@@ -26,12 +26,12 @@ Run requirements.txt
 pip install -r requirements.txt
 ```
 
+## How to use
+
 Turn on the bot
 ```
 python -m launcher
 ```
-
-## How to use
 
 Basic Command
 
